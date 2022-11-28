@@ -1,3 +1,5 @@
 .env
 *.tar
 notebooks/.ipynb_checkpoints
+runs
+.Trash-*
