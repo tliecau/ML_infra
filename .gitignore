@@ -2,4 +2,6 @@
 *.tar
 notebooks/.ipynb_checkpoints
 runs
+mlruns
+backups
 .Trash-*

@@ -48,3 +48,22 @@ services:
                 "--port=${TENSORBOARD_PORT}",
                 "--bind_all",
             ]
+
+    mlflow:
+        image: mlflow
+        build:
+            context: ./
+            dockerfile: mlflow.Dockerfile
+        ports:
+            - ${MLFLOW_PORT}:${MLFLOW_PORT}
+        volumes:
+            - ${ROOT_DIR}:/jupyter
+        command:
+            [
+                "mlflow",
+                "server",
+                "--backend-store-uri=${MLFLOW_DIR}",
+                "--default-artifact-root=${MLFLOW_DIR}",
+                "--port=${MLFLOW_PORT}",
+                "--host=0.0.0.0"
+            ]
