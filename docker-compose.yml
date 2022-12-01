@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 services:
     jupyter-server:
         image: dl-jupyter
@@ -49,6 +49,21 @@ services:
                 "--bind_all",
             ]
 
+#In order to use model registry functionality, you must run your server using a database-backed store. 
+    db:
+        image: mysql/mysql-server:5.7.28
+        restart: unless-stopped
+        container_name: mlflow_db
+        expose:
+            -  ${MYSQL_PORT}:${MYSQL_PORT}
+        environment:
+            - MYSQL_DATABASE=${MYSQL_DATABASE}
+            - MYSQL_USER=${MYSQL_USER}
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        volumes:
+            -  ${DB_DIR}:/var/lib/mysql
+
     mlflow:
         image: mlflow
         build:
@@ -62,8 +77,17 @@ services:
             [
                 "mlflow",
                 "server",
-                "--backend-store-uri=${MLFLOW_DIR}",
+                "--backend-store-uri=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}",
                 "--default-artifact-root=${MLFLOW_DIR}",
                 "--port=${MLFLOW_PORT}",
                 "--host=0.0.0.0"
             ]
+        depends_on:
+            wait-for-db:
+                condition: service_completed_successfully
+   
+    wait-for-db:
+        image: atkrad/wait4x
+        depends_on:
+            - db
+        command: tcp db:${MYSQL_PORT} -t 90s -i 1000ms
